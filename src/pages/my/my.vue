@@ -8,10 +8,10 @@ const memberStore = useMemberStore()
 const getData = async () => {
   const res = await http<string[]>({
     method: 'GET',
-    url: '/home/banner',
+    url: '',
     header: {},
   })
-  console.log('请求成功', res)
+  console.log('请求成功', res.code)
 }
 </script>
 
