@@ -6,6 +6,7 @@ import { getHomeBannerAPI, getHomeCategoryAPI, getHomeHotAPI } from '@/services/
 import CustomNavbar from './componets/CustomNavbar.vue'
 import CategoryPanel from './componets/CategoryPanel.vue'
 import HotPanel from '@/components/HotPanel.vue'
+import type { XtxGuessInstance } from '@/types/component'
 
 const bannerList = ref<BannerItem[]>([])
 // 获取轮播图数据
@@ -28,6 +29,28 @@ const getHomeHotData = async () => {
   hotList.value = res.result
 }
 
+// 获取猜你喜欢组件实例
+const guessRef = ref<XtxGuessInstance>()
+// 滚动触底
+const onScrolltolower = () => {
+  guessRef.value?.getMore()
+}
+
+// 当前下拉刷新状态
+const isTriggered = ref(false)
+
+// 自定义下拉刷新被触发
+const onRefresherrefresh = async () => {
+  // 开始动画
+  isTriggered.value = true
+  // 重置猜你喜欢组件数据
+  guessRef.value?.resetData()
+  // 加载数据
+  await Promise.all([getHomeBannerData(), getHomeCategoryData(), getHomeHotData()])
+  // 关闭动画
+  isTriggered.value = false
+}
+
 onLoad(() => {
   getHomeBannerData()
   getHomeCategoryData()
@@ -38,7 +61,14 @@ onLoad(() => {
 <template>
   <!-- 自定义导航栏 -->
   <CustomNavbar />
-  <scroll-view scroll-y class="scrolly-view">
+  <scroll-view
+    scroll-y
+    class="scrolly-view"
+    refresher-enabled
+    :refresher-triggered="isTriggered"
+    @scrolltolower="onScrolltolower"
+    @refresherrefresh="onRefresherrefresh"
+  >
     <!-- 自定义轮播图 -->
     <XtxSwiper :list="bannerList" />
     <!-- 分类面板 -->
@@ -46,7 +76,7 @@ onLoad(() => {
     <!-- 热门推荐 -->
     <HotPanel :list="hotList" />
     <!-- 猜你喜欢 -->
-    <XtxGuess />
+    <XtxGuess ref="guessRef" />
   </scroll-view>
 </template>
 
